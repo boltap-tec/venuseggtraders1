@@ -197,10 +197,13 @@ export function SaleEditor({ editing, setEditing, isNew, firmHasGst, billingType
             <div><span className="text-slate-400">Cost </span><b className="tabular-nums">{inr(t.cost)}</b></div>
             <div><span className="text-slate-400">Margin </span><b className="tabular-nums text-violet-600">{inr(t.margin)}</b></div>
           </div>
-          <div className="flex gap-2">
-            <button className="btn-outline" onClick={onCancel}>Cancel</button>
-            <button className="btn-outline" onClick={() => onSave(false)} disabled={!editing.sellerName}>Save</button>
-            <button className="btn-primary" onClick={() => onSave(true)} disabled={!editing.sellerName}>Save & View</button>
+          <div className="flex flex-col items-end gap-1">
+            {!editing.sellerName && <p className="text-xs font-medium text-rose-500">⛔ Enter a Seller Name to enable Save.</p>}
+            <div className="flex gap-2">
+              <button className="btn-outline" onClick={onCancel}>Cancel</button>
+              <button className="btn-outline" onClick={() => onSave(false)} disabled={!editing.sellerName}>Save</button>
+              <button className="btn-primary" onClick={() => onSave(true)} disabled={!editing.sellerName}>Save &amp; View</button>
+            </div>
           </div>
         </div>
       </div>

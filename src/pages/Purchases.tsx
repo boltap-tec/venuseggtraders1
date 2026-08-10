@@ -166,9 +166,12 @@ export default function Purchases() {
             <Field label="Notes" className="col-span-2">
               <input className="input" value={editing.notes || ''} onChange={(e) => setEditing({ ...editing, notes: e.target.value })} />
             </Field>
-            <div className="col-span-2 mt-2 flex justify-end gap-2">
-              <button className="btn-outline" onClick={() => setEditing(null)}>Cancel</button>
-              <button className="btn-primary" onClick={save} disabled={!editing.purchaserName}>Save Purchase</button>
+            <div className="col-span-2 mt-2 flex flex-col items-end gap-1">
+              {!editing.purchaserName && <p className="text-xs font-medium text-rose-500">⛔ Enter the Name of Purchaser to enable Save.</p>}
+              <div className="flex gap-2">
+                <button className="btn-outline" onClick={() => setEditing(null)}>Cancel</button>
+                <button className="btn-primary" onClick={save} disabled={!editing.purchaserName}>Save Purchase</button>
+              </div>
             </div>
           </div>
         )}
