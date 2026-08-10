@@ -83,7 +83,7 @@ export default function Sales() {
             <table className="w-full min-w-[860px]">
               <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
                 <tr>
-                  <th className="th">Bill No</th><th className="th">Date</th><th className="th">Type</th><th className="th">Seller</th>
+                  <th className="th">Bill No</th><th className="th">Date</th><th className="th">Firm</th><th className="th">Type</th><th className="th">Seller</th>
                   <th className="th text-right">Trays</th><th className="th text-right">Net</th>
                   <th className="th text-right">Margin</th><th className="th">Status</th><th className="th"></th>
                 </tr>
@@ -96,6 +96,7 @@ export default function Sales() {
                     <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                       <td className="td font-semibold">{s.firmBillNo}</td>
                       <td className="td">{fmtDate(s.date)}</td>
+                      <td className="td text-xs text-slate-500">{db.firms.find(f => f.id === s.firmId)?.name || '—'}</td>
                       <td className="td"><Pill tone={s.sellerType === 'B2B' ? 'blue' : 'teal'}>{s.sellerType}</Pill></td>
                       <td className="td">{s.sellerName}</td>
                       <td className="td text-right tabular-nums">{trays}</td>
@@ -115,7 +116,7 @@ export default function Sales() {
               </tbody>
               <tfoot className="border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
                 <tr className="font-bold">
-                  <td className="td" colSpan={5}>Total ({list.length})</td>
+                  <td className="td" colSpan={6}>Total ({list.length})</td>
                   <td className="td text-right tabular-nums">{inr(totals.net)}</td>
                   <td className="td text-right tabular-nums text-violet-600">{inr(totals.margin)}</td>
                   <td className="td" colSpan={2}></td>
@@ -128,6 +129,7 @@ export default function Sales() {
 
       <SaleEditor
         editing={editing} setEditing={setEditing} isNew={isNew} firmHasGst={!!firm?.gstin}
+        firmName={firm?.name || ''}
         billingTypes={db.settings.billingTypes} onSave={save} onCancel={() => setEditing(null)}
       />
 
@@ -137,15 +139,21 @@ export default function Sales() {
   )
 }
 
-export function SaleEditor({ editing, setEditing, isNew, firmHasGst, billingTypes, onSave, onCancel }: {
+export function SaleEditor({ editing, setEditing, isNew, firmHasGst, firmName, billingTypes, onSave, onCancel }: {
   editing: Sale | null; setEditing: (s: Sale | null) => void; isNew: boolean; firmHasGst: boolean
-  billingTypes: BillingType[]; onSave: (view?: boolean) => void; onCancel: () => void
+  firmName: string; billingTypes: BillingType[]; onSave: (view?: boolean) => void; onCancel: () => void
 }) {
   if (!editing) return null
   const t = saleTotals(editing)
   return (
     <Modal open onClose={onCancel} title={isNew ? 'New Sale / Bill' : 'Edit Sale'} wide>
       <div className="space-y-3">
+        {firmName && (
+          <div className="flex items-center gap-2 rounded-lg bg-brand-50 px-3 py-2 text-sm dark:bg-brand-900/20">
+            <span className="text-slate-500 dark:text-slate-400">Firm:</span>
+            <span className="font-semibold text-brand-700 dark:text-brand-300">{firmName}</span>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Field label="Date"><input className="input" type="date" value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })} /></Field>
           <Field label="Seller Type">

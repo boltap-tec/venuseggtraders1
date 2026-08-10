@@ -90,7 +90,7 @@ export default function Purchases() {
             <table className="w-full min-w-[820px]">
               <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
                 <tr>
-                  <th className="th">Voucher</th><th className="th">Date</th><th className="th">Purchaser</th>
+                  <th className="th">Voucher</th><th className="th">Date</th><th className="th">Firm</th><th className="th">Purchaser</th>
                   <th className="th text-right">Trays</th><th className="th text-right">Amount</th>
                   <th className="th text-right">Balance</th><th className="th">Billing</th><th className="th">Status</th><th className="th"></th>
                 </tr>
@@ -100,6 +100,7 @@ export default function Purchases() {
                   <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                     <td className="td font-semibold">{p.firmVoucherNo}</td>
                     <td className="td">{fmtDate(p.date)}</td>
+                    <td className="td text-xs text-slate-500">{db.firms.find(f => f.id === p.firmId)?.name || '—'}</td>
                     <td className="td">{p.purchaserName}</td>
                     <td className="td text-right tabular-nums">{p.trayQty} <span className="text-xs text-slate-400">({traysToEggs(p.trayQty, p.eggsPerTray)})</span></td>
                     <td className="td text-right tabular-nums font-semibold">{inr(p.amount)}</td>
@@ -119,7 +120,7 @@ export default function Purchases() {
               </tbody>
               <tfoot className="border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
                 <tr className="font-bold">
-                  <td className="td" colSpan={3}>Total ({list.length})</td>
+                  <td className="td" colSpan={4}>Total ({list.length})</td>
                   <td className="td text-right tabular-nums">{totals.trays}</td>
                   <td className="td text-right tabular-nums">{inr(totals.amount)}</td>
                   <td className="td text-right tabular-nums">{inr(totals.bal)}</td>
@@ -135,6 +136,12 @@ export default function Purchases() {
       <Modal open={!!editing} onClose={() => setEditing(null)} title={isNew ? 'New Purchase' : 'Edit Purchase'} wide>
         {editing && (
           <div className="grid grid-cols-2 gap-3">
+            {firm && (
+              <div className="col-span-2 flex items-center gap-2 rounded-lg bg-teal-50 px-3 py-2 text-sm dark:bg-teal-900/20">
+                <span className="text-slate-500 dark:text-slate-400">Firm:</span>
+                <span className="font-semibold text-teal-700 dark:text-teal-300">{firm.name}</span>
+              </div>
+            )}
             <Field label="Date"><input className="input" type="date" value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })} /></Field>
             <Field label="Billing Type">
               <select className="input" value={editing.billingType} onChange={(e) => setEditing({ ...editing, billingType: e.target.value as BillingType })}>
