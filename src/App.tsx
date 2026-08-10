@@ -16,8 +16,19 @@ import Reports from './pages/Reports'
 import Settings from './pages/Settings'
 
 export default function App() {
-  const { user } = useStore()
+  const { user, booting } = useStore()
   const loc = useLocation()
+
+  if (booting) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-slate-500">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
+          <p className="text-sm">Connecting to your cloud workspace…</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!user) {
     return (

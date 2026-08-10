@@ -234,3 +234,9 @@ export function resetDB(): Database {
   saveDB(fresh)
   return fresh
 }
+
+// A fresh seeded database WITHOUT touching localStorage — used to initialise
+// a brand-new cloud workspace.
+export function freshSeed(): Database {
+  return seed()
+}

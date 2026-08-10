@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Save, Database, RotateCcw, Egg, Palette, Lock } from 'lucide-react'
+import { Save, Database, RotateCcw, Egg, Palette, Lock, Cloud, CloudOff, RefreshCw, DownloadCloud } from 'lucide-react'
 import { useStore } from '../lib/store'
 import type { BillingType, DocTemplate, BillMode } from '../lib/types'
 import { PageHeader, Field, Confirm } from '../components/ui'
@@ -12,7 +12,7 @@ const TEMPLATES: { id: DocTemplate; label: string; hint: string }[] = [
 ]
 
 export default function Settings() {
-  const { db, saveSettings, resetDemo } = useStore()
+  const { db, saveSettings, resetDemo, cloud, syncState, syncNow, restoreFromCloud } = useStore()
   const [s, setS] = useState({ ...db.settings })
   const [saved, setSaved] = useState(false)
   const [reset, setReset] = useState(false)
@@ -108,6 +108,33 @@ export default function Settings() {
             {s.billingTypes.map((b) => <span key={b} className="badge bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">{b}</span>)}
           </div>
           <Field label="Invoice Footer" className="mt-3"><input className="input" value={s.invoiceFooter} onChange={(e) => setS({ ...s, invoiceFooter: e.target.value })} /></Field>
+        </div>
+
+        {/* ---- Cloud (Supabase) ---- */}
+        <div className="card p-5">
+          <h3 className="mb-1 flex items-center gap-2 font-semibold">
+            {cloud ? <Cloud size={18} /> : <CloudOff size={18} />} Cloud Sync
+          </h3>
+          {cloud ? (
+            <>
+              <p className="mb-3 flex items-center gap-2 text-sm">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                  {syncState === 'syncing' ? <RefreshCw size={12} className="animate-spin" /> : <Cloud size={12} />}
+                  Connected to Supabase
+                </span>
+              </p>
+              <p className="text-xs text-slate-400">Your data auto-saves to Supabase after every change and syncs to any device you sign in on.</p>
+              <div className="mt-3 flex flex-col gap-2">
+                <button className="btn-outline justify-start" onClick={() => syncNow()}><RefreshCw size={16} /> Push to cloud now</button>
+                <button className="btn-outline justify-start" onClick={() => restoreFromCloud()}><DownloadCloud size={16} /> Restore latest from cloud</button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="mb-2 text-sm text-slate-500">Running in <b>local mode</b> — data is stored only in this browser.</p>
+              <p className="text-xs text-slate-400">To enable cloud sync across devices, add your Supabase URL &amp; anon key to a <code>.env</code> file and restart. See <code>.env.example</code> and <code>supabase/schema.sql</code>.</p>
+            </>
+          )}
         </div>
 
         <div className="card p-5">

@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, ShoppingCart, Receipt, FileText, Boxes, Users2, Building2,
   UserCog, BarChart3, Settings as SettingsIcon, LogOut, Moon, Sun, Menu, Egg, ChevronDown,
+  Cloud, CloudOff, RefreshCw, HardDrive,
 } from 'lucide-react'
 import { useStore } from '../lib/store'
 
@@ -18,6 +19,25 @@ const NAV = [
   { to: '/users', label: 'Users', icon: UserCog, adminOnly: true },
   { to: '/settings', label: 'Settings', icon: SettingsIcon, adminOnly: true },
 ]
+
+function SyncBadge() {
+  const { cloud, syncState } = useStore()
+  if (!cloud) {
+    return (
+      <span className="hidden items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400 sm:inline-flex" title="Data saved in this browser">
+        <HardDrive size={14} /> Local
+      </span>
+    )
+  }
+  const map = {
+    idle: { icon: <Cloud size={14} />, text: 'Cloud', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' },
+    saved: { icon: <Cloud size={14} />, text: 'Saved', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' },
+    syncing: { icon: <RefreshCw size={14} className="animate-spin" />, text: 'Syncing…', cls: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300' },
+    error: { icon: <CloudOff size={14} />, text: 'Sync error', cls: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300' },
+    local: { icon: <HardDrive size={14} />, text: 'Local', cls: 'bg-slate-100 text-slate-500' },
+  }[syncState]
+  return <span className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold ${map.cls}`} title="Cloud sync status">{map.icon}<span className="hidden sm:inline">{map.text}</span></span>
+}
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { db, user, logout, currentFirmId, setCurrentFirmId } = useStore()
@@ -96,6 +116,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            <SyncBadge />
             <button className="btn-ghost !p-2" onClick={() => setDark((d) => !d)} aria-label="Toggle theme">
               {dark ? <Sun size={18} /> : <Moon size={18} />}
             </button>

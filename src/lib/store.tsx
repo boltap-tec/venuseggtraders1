@@ -1,17 +1,28 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type {
   Database, User, Firm, Party, Purchase, Sale, Quotation, StockAdjustment, Settings, Payment,
 } from './types'
-import { loadDB, saveDB, resetDB, uid } from './db'
+import { loadDB, saveDB, resetDB, freshSeed, uid } from './db'
 import { nextVoucher, nextBill, nextQuote } from './numbering'
+import { supabase, isCloud } from './supabase'
+import { pullState, pushState } from './remote'
+
+export type SyncState = 'local' | 'idle' | 'syncing' | 'saved' | 'error'
 
 interface StoreValue {
   db: Database
   user: User | null
   currentFirmId: string | null
   setCurrentFirmId: (id: string | null) => void
-  login: (email: string, password: string) => string | null
+  login: (email: string, password: string) => Promise<string | null>
   logout: () => void
+
+  // cloud
+  cloud: boolean
+  syncState: SyncState
+  booting: boolean
+  syncNow: () => Promise<void>
+  restoreFromCloud: () => Promise<void>
 
   // firms
   saveFirm: (f: Firm) => void
@@ -53,21 +64,74 @@ const Ctx = createContext<StoreValue | null>(null)
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [db, setDb] = useState<Database>(() => loadDB())
   const [user, setUser] = useState<User | null>(() => {
+    if (isCloud) return null // cloud sessions are restored via the boot effect
     const raw = localStorage.getItem('vet.user')
     return raw ? JSON.parse(raw) : null
   })
   const [currentFirmId, setCurrentFirmIdState] = useState<string | null>(() => {
     return localStorage.getItem('vet.firm') || null
   })
+  const [syncState, setSyncState] = useState<SyncState>(isCloud ? 'idle' : 'local')
+  const [booting, setBooting] = useState<boolean>(isCloud)
+  const cloudUserId = useRef<string | null>(null)
+  const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!currentFirmId && db.firms.length) setCurrentFirmId(db.firms[0].id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db.firms.length])
 
+  // ---------- cloud boot: restore an existing Supabase session ----------
+  useEffect(() => {
+    if (!isCloud || !supabase) return
+    let active = true
+    ;(async () => {
+      const { data } = await supabase.auth.getSession()
+      const sess = data.session
+      if (sess && active) {
+        cloudUserId.current = sess.user.id
+        await hydrateFromCloud(sess.user.id, sess.user.email || '')
+      }
+      if (active) setBooting(false)
+    })()
+    return () => { active = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function hydrateFromCloud(userId: string, email: string) {
+    setSyncState('syncing')
+    let cloud = await pullState(userId)
+    if (!cloud) {
+      // brand-new workspace — seed it and push
+      cloud = freshSeed()
+      await pushState(userId, cloud)
+    }
+    saveDB(cloud)
+    setDb({ ...cloud })
+    setUser(mapCloudUser(cloud, userId, email))
+    if (cloud.firms.length) setCurrentFirmId(localStorage.getItem('vet.firm') || cloud.firms[0].id)
+    setSyncState('saved')
+  }
+
+  function mapCloudUser(database: Database, userId: string, email: string): User {
+    const known = database.users.find((u) => u.email.toLowerCase() === email.toLowerCase())
+    return { id: userId, name: known?.name || email.split('@')[0], email, role: known?.role || 'Admin', password: '' }
+  }
+
+  function scheduleCloudPush(next: Database) {
+    if (!isCloud || !cloudUserId.current) return
+    setSyncState('syncing')
+    if (pushTimer.current) clearTimeout(pushTimer.current)
+    pushTimer.current = setTimeout(async () => {
+      const err = await pushState(cloudUserId.current!, next)
+      setSyncState(err ? 'error' : 'saved')
+    }, 800)
+  }
+
   function commit(next: Database) {
-    saveDB(next)
+    saveDB(next) // local cache (also offline copy in cloud mode)
     setDb({ ...next })
+    scheduleCloudPush(next)
   }
 
   function setCurrentFirmId(id: string | null) {
@@ -76,7 +140,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     else localStorage.removeItem('vet.firm')
   }
 
-  function login(email: string, password: string): string | null {
+  async function login(email: string, password: string): Promise<string | null> {
+    if (isCloud && supabase) {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+      if (error || !data.user) return error?.message || 'Sign-in failed.'
+      cloudUserId.current = data.user.id
+      await hydrateFromCloud(data.user.id, data.user.email || email)
+      return null
+    }
     const u = db.users.find((x) => x.email.toLowerCase() === email.toLowerCase().trim())
     if (!u || u.password !== password) return 'Invalid email or password.'
     setUser(u)
@@ -84,8 +155,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return null
   }
   function logout() {
+    if (isCloud && supabase) { supabase.auth.signOut(); cloudUserId.current = null }
     setUser(null)
     localStorage.removeItem('vet.user')
+  }
+
+  async function syncNow() {
+    if (!isCloud || !cloudUserId.current) return
+    setSyncState('syncing')
+    const err = await pushState(cloudUserId.current, db)
+    setSyncState(err ? 'error' : 'saved')
+  }
+  async function restoreFromCloud() {
+    if (!isCloud || !cloudUserId.current) return
+    setSyncState('syncing')
+    const cloud = await pullState(cloudUserId.current)
+    if (cloud) { saveDB(cloud); setDb({ ...cloud }); setSyncState('saved') }
+    else setSyncState('error')
   }
 
   // ---------- firms ----------
@@ -261,6 +347,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const fresh = resetDB()
     setDb(fresh)
     setCurrentFirmId(fresh.firms[0]?.id || null)
+    scheduleCloudPush(fresh)
   }
   function reload() {
     setDb(loadDB())
@@ -269,6 +356,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<StoreValue>(
     () => ({
       db, user, currentFirmId, setCurrentFirmId, login, logout,
+      cloud: isCloud, syncState, booting, syncNow, restoreFromCloud,
       saveFirm, deleteFirm, saveParty, deleteParty,
       savePurchase, deletePurchase, addPurchasePayment,
       saveSale, deleteSale, addSalePayment,
@@ -276,7 +364,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       addAdjustment, saveSettings, saveUser, deleteUser, resetDemo, reload,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [db, user, currentFirmId],
+    [db, user, currentFirmId, syncState, booting],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

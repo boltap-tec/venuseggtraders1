@@ -4,15 +4,19 @@ import { Egg, LogIn } from 'lucide-react'
 import { useStore } from '../lib/store'
 
 export default function Login() {
-  const { login } = useStore()
+  const { login, cloud } = useStore()
   const nav = useNavigate()
-  const [email, setEmail] = useState('admin@venus.app')
-  const [password, setPassword] = useState('admin123')
+  const [email, setEmail] = useState(cloud ? '' : 'admin@venus.app')
+  const [password, setPassword] = useState(cloud ? '' : 'admin123')
   const [err, setErr] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
-    const error = login(email, password)
+    setBusy(true)
+    setErr(null)
+    const error = await login(email, password)
+    setBusy(false)
     if (error) setErr(error)
     else nav('/')
   }
@@ -56,14 +60,21 @@ export default function Login() {
               <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             {err && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600 dark:bg-rose-900/30">{err}</p>}
-            <button className="btn-primary w-full" type="submit"><LogIn size={18} /> Sign in</button>
+            <button className="btn-primary w-full" type="submit" disabled={busy}><LogIn size={18} /> {busy ? 'Signing in…' : 'Sign in'}</button>
           </div>
 
-          <div className="mt-6 rounded-lg bg-slate-50 p-3 text-xs text-slate-500 dark:bg-slate-800/60">
-            <p className="font-semibold text-slate-600 dark:text-slate-300">Demo logins</p>
-            <p className="mt-1">Admin — admin@venus.app / admin123</p>
-            <p>Operator — operator@venus.app / operator123</p>
-          </div>
+          {cloud ? (
+            <div className="mt-6 rounded-lg bg-emerald-50 p-3 text-xs text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+              <p className="font-semibold">☁️ Connected to Supabase</p>
+              <p className="mt-1">Sign in with the email &amp; password you created in your Supabase project (Authentication → Users).</p>
+            </div>
+          ) : (
+            <div className="mt-6 rounded-lg bg-slate-50 p-3 text-xs text-slate-500 dark:bg-slate-800/60">
+              <p className="font-semibold text-slate-600 dark:text-slate-300">Demo logins (local mode)</p>
+              <p className="mt-1">Admin — admin@venus.app / admin123</p>
+              <p>Operator — operator@venus.app / operator123</p>
+            </div>
+          )}
         </form>
       </div>
     </div>
