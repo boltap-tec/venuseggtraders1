@@ -20,7 +20,8 @@ export default function PurchaseDetail() {
   const [note, setNote] = useState('')
 
   if (!purchase) return <div className="p-6">Purchase not found. <button className="text-brand-600 underline" onClick={() => nav('/purchases')}>Back</button></div>
-  const firm = db.firms.find((f) => f.id === purchase.firmId)!
+  const firm = db.firms.find((f) => f.id === purchase.firmId)
+  if (!firm) return <div className="p-6">Firm not found for this purchase. <button className="text-brand-600 underline" onClick={() => nav('/purchases')}>Back</button></div>
   const billMode: BillMode = purchase.billMode || db.settings.defaultBillMode
   const balance = purchase.amount - purchase.receivedAmount
 

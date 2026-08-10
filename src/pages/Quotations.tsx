@@ -26,7 +26,7 @@ const statusTone: Record<QuoteStatus, string> = {
 
 export default function Quotations() {
   const { db, currentFirmId, user, saveQuote, deleteQuote, convertQuote } = useStore()
-  const firm = db.firms.find((f) => f.id === currentFirmId)!
+  const firm = db.firms.find((f) => f.id === currentFirmId)
   const nav = useNavigate()
   const [q, setQ] = useState('')
   const [editing, setEditing] = useState<Quotation | null>(null)
@@ -40,12 +40,20 @@ export default function Quotations() {
     .filter((x) => !q || x.sellerName.toLowerCase().includes(q.toLowerCase()) || x.firmQuoteNo.toLowerCase().includes(q.toLowerCase()))
     .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.quoteNo - a.quoteNo)), [db.quotations, currentFirmId, q])
 
-  function openNew() { setEditing(blank(currentFirmId!)); setIsNew(true) }
+  function openNew() {
+    if (!currentFirmId) { alert('Please select a firm first.'); return }
+    setEditing(blank(currentFirmId)); setIsNew(true)
+  }
   function openEdit(x: Quotation) { setEditing({ ...x, items: x.items.map((i) => ({ ...i })) }); setIsNew(false) }
   function save() {
     if (!editing) return
-    saveQuote({ ...editing, createdBy: editing.createdBy || user?.email || '', updatedAt: new Date().toISOString() }, isNew)
-    setEditing(null)
+    try {
+      saveQuote({ ...editing, createdBy: editing.createdBy || user?.email || '', updatedAt: new Date().toISOString() }, isNew)
+      setEditing(null)
+    } catch (err) {
+      console.error('[Quotations] Save failed:', err)
+      alert('Failed to save the quotation. Please check the console for details.')
+    }
   }
 
   return (
@@ -120,7 +128,7 @@ export default function Quotations() {
                 onText={(name) => setEditing({ ...editing, sellerName: name })} />
             </Field>
             <div className="rounded-xl border border-slate-200 p-3 dark:border-slate-700">
-              <LineItemEditor items={editing.items} onChange={(items: SaleItem[]) => setEditing({ ...editing, items })} showGst={!!firm.gstin && editing.gstEnabled} />
+              <LineItemEditor items={editing.items} onChange={(items: SaleItem[]) => setEditing({ ...editing, items })} showGst={!!firm?.gstin && editing.gstEnabled} />
             </div>
             <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
               <div className="text-sm"><span className="text-slate-400">Total </span><b className="tabular-nums">{inr(saleTotals(editing).net)}</b></div>
@@ -139,11 +147,11 @@ export default function Quotations() {
           <div className="no-print mx-auto mb-3 flex max-w-[210mm] items-center justify-between">
             <button className="btn-outline bg-white" onClick={() => setView(null)}><X size={16} /> Close</button>
             <div className="flex gap-2">
-              <button className="btn-outline bg-white" onClick={() => exportQuoteExcel(view, firm)}><FileSpreadsheet size={16} /> Excel</button>
+              <button className="btn-outline bg-white" onClick={() => exportQuoteExcel(view, firm!)}>  <FileSpreadsheet size={16} /> Excel</button>
               <button className="btn-primary" onClick={() => window.print()}><Printer size={16} /> Print / PDF</button>
             </div>
           </div>
-          <DocumentView firm={firm} doc={view} kind="quote" />
+          {firm && <DocumentView firm={firm} doc={view} kind="quote" />}
         </div>
       )}
 

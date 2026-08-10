@@ -21,7 +21,8 @@ export default function SaleDetail() {
   const [note, setNote] = useState('')
 
   if (!sale) return <div className="p-6">Sale not found. <button className="text-brand-600 underline" onClick={() => nav('/sales')}>Back</button></div>
-  const firm = db.firms.find((f) => f.id === sale.firmId)!
+  const firm = db.firms.find((f) => f.id === sale.firmId)
+  if (!firm) return <div className="p-6">Firm not found for this sale. <button className="text-brand-600 underline" onClick={() => nav('/sales')}>Back</button></div>
   const t = saleTotals(sale)
   const billMode: BillMode = sale.billMode || db.settings.defaultBillMode
 
