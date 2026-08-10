@@ -196,23 +196,41 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   // ---------- purchases ----------
   function savePurchase(p: Purchase, isNew: boolean): Purchase {
-    const next = { ...db }
-    let rec = p
-    if (isNew) {
-      const firm = db.firms.find((f) => f.id === p.firmId)!
-      const n = nextVoucher(db, firm, p.date)
-      next.counters = {
-        ...db.counters,
-        voucherNo: n.global,
-        firmVoucherSeq: { ...db.counters.firmVoucherSeq, [n.key]: n.seq },
+    try {
+      const next = { ...db }
+      let rec = p
+      if (isNew) {
+        const firm = db.firms.find((f) => f.id === p.firmId)
+        if (!firm) {
+          console.error('[savePurchase] Firm not found for id:', p.firmId, 'Available firms:', db.firms.map(f => f.id))
+          // Fallback: save without firm-specific numbering
+          const fallbackNo = (db.counters.voucherNo || 0) + 1
+          next.counters = { ...db.counters, voucherNo: fallbackNo }
+          rec = { ...p, voucherNo: fallbackNo, firmVoucherNo: `P/${String(fallbackNo).padStart(3, '0')}` }
+          next.purchases = [rec, ...db.purchases]
+        } else {
+          const n = nextVoucher(db, firm, p.date)
+          next.counters = {
+            ...db.counters,
+            voucherNo: n.global,
+            firmVoucherSeq: { ...db.counters.firmVoucherSeq, [n.key]: n.seq },
+          }
+          rec = { ...p, voucherNo: n.global, firmVoucherNo: n.firmVoucherNo }
+          next.purchases = [rec, ...db.purchases]
+        }
+      } else {
+        next.purchases = db.purchases.map((x) => (x.id === p.id ? p : x))
       }
-      rec = { ...p, voucherNo: n.global, firmVoucherNo: n.firmVoucherNo }
-      next.purchases = [rec, ...db.purchases]
-    } else {
-      next.purchases = db.purchases.map((x) => (x.id === p.id ? p : x))
+      commit(next)
+      return rec
+    } catch (err) {
+      console.error('[savePurchase] Failed to save purchase:', err)
+      // Still try to save even if numbering fails
+      const fallback = { ...db }
+      fallback.purchases = isNew ? [p, ...db.purchases] : db.purchases.map((x) => (x.id === p.id ? p : x))
+      commit(fallback)
+      return p
     }
-    commit(next)
-    return rec
   }
   function deletePurchase(id: string) {
     commit({ ...db, purchases: db.purchases.map((p) => (p.id === id ? { ...p, deletedAt: new Date().toISOString() } : p)) })
@@ -230,23 +248,41 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   // ---------- sales ----------
   function saveSale(s: Sale, isNew: boolean): Sale {
-    const next = { ...db }
-    let rec = s
-    if (isNew) {
-      const firm = db.firms.find((f) => f.id === s.firmId)!
-      const n = nextBill(db, firm, s.date)
-      next.counters = {
-        ...db.counters,
-        billNo: n.global,
-        firmBillSeq: { ...db.counters.firmBillSeq, [n.key]: n.seq },
+    try {
+      const next = { ...db }
+      let rec = s
+      if (isNew) {
+        const firm = db.firms.find((f) => f.id === s.firmId)
+        if (!firm) {
+          console.error('[saveSale] Firm not found for id:', s.firmId, 'Available firms:', db.firms.map(f => f.id))
+          // Fallback: save without firm-specific numbering
+          const fallbackNo = (db.counters.billNo || 0) + 1
+          next.counters = { ...db.counters, billNo: fallbackNo }
+          rec = { ...s, billNo: fallbackNo, firmBillNo: `BILL/${String(fallbackNo).padStart(3, '0')}` }
+          next.sales = [rec, ...db.sales]
+        } else {
+          const n = nextBill(db, firm, s.date)
+          next.counters = {
+            ...db.counters,
+            billNo: n.global,
+            firmBillSeq: { ...db.counters.firmBillSeq, [n.key]: n.seq },
+          }
+          rec = { ...s, billNo: n.global, firmBillNo: n.firmBillNo }
+          next.sales = [rec, ...db.sales]
+        }
+      } else {
+        next.sales = db.sales.map((x) => (x.id === s.id ? s : x))
       }
-      rec = { ...s, billNo: n.global, firmBillNo: n.firmBillNo }
-      next.sales = [rec, ...db.sales]
-    } else {
-      next.sales = db.sales.map((x) => (x.id === s.id ? s : x))
+      commit(next)
+      return rec
+    } catch (err) {
+      console.error('[saveSale] Failed to save sale:', err)
+      // Still try to save even if numbering fails
+      const fallback = { ...db }
+      fallback.sales = isNew ? [s, ...db.sales] : db.sales.map((x) => (x.id === s.id ? s : x))
+      commit(fallback)
+      return s
     }
-    commit(next)
-    return rec
   }
   function deleteSale(id: string) {
     commit({ ...db, sales: db.sales.map((s) => (s.id === id ? { ...s, deletedAt: new Date().toISOString() } : s)) })
@@ -264,23 +300,39 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   // ---------- quotations ----------
   function saveQuote(q: Quotation, isNew: boolean): Quotation {
-    const next = { ...db }
-    let rec = q
-    if (isNew) {
-      const firm = db.firms.find((f) => f.id === q.firmId)!
-      const n = nextQuote(db, firm, q.date)
-      next.counters = {
-        ...db.counters,
-        quoteNo: n.global,
-        firmQuoteSeq: { ...db.counters.firmQuoteSeq, [n.key]: n.seq },
+    try {
+      const next = { ...db }
+      let rec = q
+      if (isNew) {
+        const firm = db.firms.find((f) => f.id === q.firmId)
+        if (!firm) {
+          console.error('[saveQuote] Firm not found for id:', q.firmId)
+          const fallbackNo = (db.counters.quoteNo || 0) + 1
+          next.counters = { ...db.counters, quoteNo: fallbackNo }
+          rec = { ...q, quoteNo: fallbackNo, firmQuoteNo: `Q/${String(fallbackNo).padStart(3, '0')}` }
+          next.quotations = [rec, ...db.quotations]
+        } else {
+          const n = nextQuote(db, firm, q.date)
+          next.counters = {
+            ...db.counters,
+            quoteNo: n.global,
+            firmQuoteSeq: { ...db.counters.firmQuoteSeq, [n.key]: n.seq },
+          }
+          rec = { ...q, quoteNo: n.global, firmQuoteNo: n.firmQuoteNo }
+          next.quotations = [rec, ...db.quotations]
+        }
+      } else {
+        next.quotations = db.quotations.map((x) => (x.id === q.id ? q : x))
       }
-      rec = { ...q, quoteNo: n.global, firmQuoteNo: n.firmQuoteNo }
-      next.quotations = [rec, ...db.quotations]
-    } else {
-      next.quotations = db.quotations.map((x) => (x.id === q.id ? q : x))
+      commit(next)
+      return rec
+    } catch (err) {
+      console.error('[saveQuote] Failed to save quotation:', err)
+      const fallback = { ...db }
+      fallback.quotations = isNew ? [q, ...db.quotations] : db.quotations.map((x) => (x.id === q.id ? q : x))
+      commit(fallback)
+      return q
     }
-    commit(next)
-    return rec
   }
   function deleteQuote(id: string) {
     commit({ ...db, quotations: db.quotations.map((q) => (q.id === id ? { ...q, deletedAt: new Date().toISOString() } : q)) })
@@ -288,7 +340,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   function convertQuote(id: string): Sale | null {
     const q = db.quotations.find((x) => x.id === id)
     if (!q) return null
-    const firm = db.firms.find((f) => f.id === q.firmId)!
+    const firm = db.firms.find((f) => f.id === q.firmId)
+    if (!firm) { console.error('[convertQuote] Firm not found'); return null }
     const date = new Date().toISOString().slice(0, 10)
     const n = nextBill(db, firm, date)
     const sale: Sale = {

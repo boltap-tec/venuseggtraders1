@@ -35,14 +35,22 @@ export default function Sales() {
       .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.billNo - a.billNo))
   }, [db.sales, currentFirmId, q])
 
-  function openNew() { setEditing(blank(currentFirmId!)); setIsNew(true) }
+  function openNew() {
+    if (!currentFirmId) { alert('Please select a firm first.'); return }
+    setEditing(blank(currentFirmId)); setIsNew(true)
+  }
   function openEdit(s: Sale) { setEditing({ ...s, items: s.items.map((i) => ({ ...i })) }); setIsNew(false) }
   function save(view?: boolean) {
     if (!editing) return
-    const rec = { ...editing, createdBy: editing.createdBy || user?.email || '', updatedAt: new Date().toISOString() }
-    const saved = saveSale(rec, isNew)
-    setEditing(null)
-    if (view) nav(`/sales/${saved.id}`)
+    try {
+      const rec = { ...editing, createdBy: editing.createdBy || user?.email || '', updatedAt: new Date().toISOString() }
+      const saved = saveSale(rec, isNew)
+      setEditing(null)
+      if (view) nav(`/sales/${saved.id}`)
+    } catch (err) {
+      console.error('[Sales] Save failed:', err)
+      alert('Failed to save the sale. Please check the console for details.')
+    }
   }
 
   const totals = list.reduce((a, s) => { const t = saleTotals(s); return { net: a.net + t.net, margin: a.margin + t.margin, bal: a.bal + t.balance } }, { net: 0, margin: 0, bal: 0 })

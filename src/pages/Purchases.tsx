@@ -37,7 +37,8 @@ export default function Purchases() {
   }, [db.purchases, currentFirmId, q])
 
   function openNew() {
-    setEditing(blank(currentFirmId!, eggsPerTray))
+    if (!currentFirmId) { alert('Please select a firm first.'); return }
+    setEditing(blank(currentFirmId, eggsPerTray))
     setIsNew(true)
   }
   function openEdit(p: Purchase) {
@@ -46,9 +47,14 @@ export default function Purchases() {
   }
   function save() {
     if (!editing) return
-    const rec = { ...editing, createdBy: editing.createdBy || user?.email || '', updatedAt: new Date().toISOString() }
-    savePurchase(rec, isNew)
-    setEditing(null)
+    try {
+      const rec = { ...editing, createdBy: editing.createdBy || user?.email || '', updatedAt: new Date().toISOString() }
+      savePurchase(rec, isNew)
+      setEditing(null)
+    } catch (err) {
+      console.error('[Purchases] Save failed:', err)
+      alert('Failed to save the purchase. Please check the console for details.')
+    }
   }
 
   const totals = list.reduce(
