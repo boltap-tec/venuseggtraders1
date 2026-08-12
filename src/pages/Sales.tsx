@@ -13,7 +13,7 @@ import { exportSalesRegister } from '../lib/excel'
 
 const blank = (firmId: string): Sale => ({
   id: uid(), billNo: 0, firmBillNo: '', date: todayISO(), firmId,
-  sellerType: 'B2C', sellerName: '',
+  sellerType: 'B2B', sellerName: '',
   items: [{ id: uid(), description: 'Farm Eggs (Tray)', qtyTray: 0, amountPerQty: 0, costPerTray: 0 }],
   discountAmount: 0, billingType: 'Cash', payments: [], receivedAmount: 0, docStatus: 'Finalized',
   createdBy: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
@@ -43,7 +43,9 @@ export default function Sales() {
   function save(view?: boolean) {
     if (!editing) return
     try {
-      const rec = { ...editing, createdBy: editing.createdBy || user?.email || '', updatedAt: new Date().toISOString() }
+      // Seller Name is optional — if left blank, use the type (B2B / B2C) as the name.
+      const name = editing.sellerName.trim() || editing.sellerType
+      const rec = { ...editing, sellerName: name, createdBy: editing.createdBy || user?.email || '', updatedAt: new Date().toISOString() }
       const saved = saveSale(rec, isNew)
       setEditing(null)
       if (view) nav(`/sales/${saved.id}`)
@@ -156,7 +158,7 @@ export function SaleEditor({ editing, setEditing, isNew, firmHasGst, firmName, b
         )}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Field label="Date"><input className="input" type="date" value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })} /></Field>
-          <Field label="Seller Type">
+          <Field label="Name (Type)">
             <select className="input" value={editing.sellerType} onChange={(e) => setEditing({ ...editing, sellerType: e.target.value as SellerType })}>
               <option value="B2B">B2B</option><option value="B2C">B2C</option>
             </select>
@@ -176,10 +178,11 @@ export function SaleEditor({ editing, setEditing, isNew, firmHasGst, firmName, b
           )}
         </div>
 
-        <Field label="Seller Name (sell to)">
+        <Field label="Customer Name (optional)">
           <AutoParty value={editing.sellerName} type="Seller"
             onPick={(p) => setEditing({ ...editing, sellerName: p.name, sellerId: p.id, sellerAddress: p.address, sellerPhone: p.phone, sellerGstin: p.gstin })}
             onText={(name) => setEditing({ ...editing, sellerName: name, sellerId: undefined })} />
+          <p className="mt-1 text-xs text-slate-400">Optional — if left blank, the bill uses the type ({editing.sellerType}) as the name.</p>
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Address"><input className="input" value={editing.sellerAddress || ''} onChange={(e) => setEditing({ ...editing, sellerAddress: e.target.value })} /></Field>
@@ -191,21 +194,13 @@ export function SaleEditor({ editing, setEditing, isNew, firmHasGst, firmName, b
           <p className="mt-1 text-xs text-slate-400">Buy Cost/Tray is internal (for margin) and never printed on the invoice.</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Field label="Discount">
-            <input className="input" type="number" value={editing.discountAmount || ''} onChange={(e) => setEditing({ ...editing, discountAmount: parseFloat(e.target.value) || 0 })} />
-          </Field>
-          <Field label="Discount is %">
-            <select className="input" value={editing.discountIsPercent ? 'y' : 'n'} onChange={(e) => setEditing({ ...editing, discountIsPercent: e.target.value === 'y' })}>
-              <option value="n">₹ Amount</option><option value="y">% Percent</option>
-            </select>
-          </Field>
-          {editing.billingType === 'Credit' && (
+        {editing.billingType === 'Credit' && (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Field label="Received now">
               <input className="input" type="number" value={editing.receivedAmount || ''} onChange={(e) => setEditing({ ...editing, receivedAmount: parseFloat(e.target.value) || 0 })} />
             </Field>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
           <div className="flex gap-5 text-sm">
@@ -213,13 +208,10 @@ export function SaleEditor({ editing, setEditing, isNew, firmHasGst, firmName, b
             <div><span className="text-slate-400">Cost </span><b className="tabular-nums">{inr(t.cost)}</b></div>
             <div><span className="text-slate-400">Margin </span><b className="tabular-nums text-violet-600">{inr(t.margin)}</b></div>
           </div>
-          <div className="flex flex-col items-end gap-1">
-            {!editing.sellerName && <p className="text-xs font-medium text-rose-500">⛔ Enter a Seller Name to enable Save.</p>}
-            <div className="flex gap-2">
-              <button className="btn-outline" onClick={onCancel}>Cancel</button>
-              <button className="btn-outline" onClick={() => onSave(false)} disabled={!editing.sellerName}>Save</button>
-              <button className="btn-primary" onClick={() => onSave(true)} disabled={!editing.sellerName}>Save &amp; View</button>
-            </div>
+          <div className="flex gap-2">
+            <button className="btn-outline" onClick={onCancel}>Cancel</button>
+            <button className="btn-outline" onClick={() => onSave(false)}>Save</button>
+            <button className="btn-primary" onClick={() => onSave(true)}>Save &amp; View</button>
           </div>
         </div>
       </div>

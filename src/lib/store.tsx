@@ -77,9 +77,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    if (!currentFirmId && db.firms.length) setCurrentFirmId(db.firms[0].id)
+    // Keep the selected firm valid: if it's missing or points to a firm that no
+    // longer exists (e.g. a stale id left over after switching to cloud data),
+    // fall back to the first available firm.
+    const active = db.firms.filter((f) => f.isActive)
+    if (active.length && !active.some((f) => f.id === currentFirmId)) {
+      setCurrentFirmId(active[0].id)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [db.firms.length])
+  }, [db.firms, currentFirmId])
 
   // ---------- cloud boot: restore an existing Supabase session ----------
   useEffect(() => {
@@ -109,7 +115,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     saveDB(cloud)
     setDb({ ...cloud })
     setUser(mapCloudUser(cloud, userId, email))
-    if (cloud.firms.length) setCurrentFirmId(localStorage.getItem('vet.firm') || cloud.firms[0].id)
+    if (cloud.firms.length) {
+      const saved = localStorage.getItem('vet.firm')
+      setCurrentFirmId(cloud.firms.some((f) => f.id === saved) ? saved! : cloud.firms[0].id)
+    }
     setSyncState('saved')
   }
 
