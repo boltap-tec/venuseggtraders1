@@ -98,7 +98,6 @@ export default function Reports() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <StatCard label="Sales" value={inr(salesVal)} tone="emerald" icon={<Receipt />} />
         <StatCard label="Purchases" value={inr(purchaseVal)} tone="blue" icon={<ShoppingCart />} />
-        <StatCard label="Margin" value={inr(margin)} tone="violet" icon={<TrendingUp />} />
         <StatCard label="Receivable" value={inr(receivable)} tone="brand" icon={<HandCoins />} />
         <StatCard label="Payable" value={inr(payable)} tone="rose" icon={<Wallet />} />
       </div>

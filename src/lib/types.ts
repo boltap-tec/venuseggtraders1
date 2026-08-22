@@ -55,7 +55,7 @@ export interface Party {
   notes?: string
 }
 
-export type BillingType = 'Credit' | 'Cash' | 'Card' | 'UPI' | 'Cheque' | 'Other'
+export type BillingType = 'Credit' | 'Cash' | 'Card' | 'UPI' | 'In_account' | 'Cheque' | 'Other'
 export type PaymentStatus = 'Paid' | 'Partial' | 'Pending'
 export type DocStatus = 'Draft' | 'Finalized'
 

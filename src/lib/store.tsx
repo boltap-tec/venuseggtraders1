@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useRef, useState 
 import type {
   Database, User, Firm, Party, Purchase, Sale, Quotation, StockAdjustment, Settings, Payment,
 } from './types'
-import { loadDB, saveDB, resetDB, freshSeed, uid } from './db'
+import { loadDB, saveDB, resetDB, freshSeed, migrate, uid } from './db'
 import { nextVoucher, nextBill, nextQuote } from './numbering'
 import { supabase, isCloud } from './supabase'
 import { pullState, pushState } from './remote'
@@ -111,6 +111,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       // brand-new workspace — seed it and push
       cloud = freshSeed()
       await pushState(userId, cloud)
+    } else {
+      cloud = migrate(cloud) // bring older cloud data up to date (e.g. In_account)
     }
     saveDB(cloud)
     setDb({ ...cloud })
@@ -179,7 +181,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!isCloud || !cloudUserId.current) return
     setSyncState('syncing')
     const cloud = await pullState(cloudUserId.current)
-    if (cloud) { saveDB(cloud); setDb({ ...cloud }); setSyncState('saved') }
+    if (cloud) { const m = migrate(cloud); saveDB(m); setDb({ ...m }); setSyncState('saved') }
     else setSyncState('error')
   }
 

@@ -84,7 +84,7 @@ function seed(): Database {
       defaultTaxRate: 0,
       taxRates: [0, 5, 12, 18],
       fyStartMonth: 4,
-      billingTypes: ['Credit', 'Cash', 'Card', 'UPI', 'Cheque', 'Other'],
+      billingTypes: ['Credit', 'Cash', 'Card', 'UPI', 'In_account', 'Cheque', 'Other'],
       lowStockThresholdTrays: 30,
       invoiceFooter: 'Thank you for your business!',
       saleTemplate: 'modern',
@@ -201,22 +201,29 @@ function fyOf(iso: string, fyStartMonth: number): string {
   return `${startYear}-${startYear + 1}`
 }
 
+// Bring older saved data (local OR cloud) up to date with newly-added fields.
+export function migrate(db: Database): Database {
+  const settingsDefaults: Partial<Database['settings']> = {
+    saleTemplate: 'modern',
+    purchaseTemplate: 'classic',
+    defaultBillMode: 'Simple',
+    showPaymentHistory: true,
+    stockPassword: 'ram',
+  }
+  db.settings = { ...settingsDefaults, ...db.settings } as Database['settings']
+  // Ensure the In_account payment mode exists.
+  if (Array.isArray(db.settings.billingTypes) && !db.settings.billingTypes.includes('In_account')) {
+    const idx = db.settings.billingTypes.indexOf('Cheque')
+    if (idx >= 0) db.settings.billingTypes.splice(idx, 0, 'In_account')
+    else db.settings.billingTypes.push('In_account')
+  }
+  return db
+}
+
 export function loadDB(): Database {
   try {
     const raw = localStorage.getItem(KEY)
-    if (raw) {
-      const db = JSON.parse(raw) as Database
-      // Backfill newly-added settings so older saved data keeps working.
-      const settingsDefaults: Partial<Database['settings']> = {
-        saleTemplate: 'modern',
-        purchaseTemplate: 'classic',
-        defaultBillMode: 'Simple',
-        showPaymentHistory: true,
-        stockPassword: 'ram',
-      }
-      db.settings = { ...settingsDefaults, ...db.settings } as Database['settings']
-      return db
-    }
+    if (raw) return migrate(JSON.parse(raw) as Database)
   } catch {
     // ignore corrupt state
   }

@@ -61,7 +61,6 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         <StatCard label="Sales (mo)" value={inr(kpi.salesVal)} tone="emerald" icon={<Receipt />} />
         <StatCard label="Purchases (mo)" value={inr(kpi.purchaseVal)} tone="blue" icon={<ShoppingCart />} />
-        <StatCard label="Margin (mo)" value={inr(kpi.margin)} tone="violet" icon={<TrendingUp />} />
         <StatCard label="Receivable" value={inr(kpi.receivable)} sub="from Sellers" tone="brand" icon={<HandCoins />} />
         <StatCard label="Payable" value={inr(kpi.payable)} sub="to Purchasers" tone="rose" icon={<Wallet />} />
         <StatCard label="Stock" value={`${num(stock)} trays`} sub={traysToEggs(stock, eggsPerTray)} tone={lowStock ? 'rose' : 'emerald'} icon={<Boxes />} />

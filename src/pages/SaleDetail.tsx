@@ -46,13 +46,11 @@ export default function SaleDetail() {
         </div>
       </div>
 
-      {/* Internal margin strip (never printed) */}
-      <div className="no-print mb-4 flex flex-wrap gap-5 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm dark:border-violet-900 dark:bg-violet-900/20">
+      {/* Payment summary (never printed) */}
+      <div className="no-print mb-4 flex flex-wrap gap-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-800/50">
         <div><span className="text-slate-400">Net </span><b>{inr(t.net)}</b></div>
         <div><span className="text-slate-400">Received </span><b>{inr(t.received)}</b></div>
         <div><span className="text-slate-400">Payment Due </span><b className="text-rose-600">{inr(t.balance)}</b></div>
-        <div className="ml-auto"><span className="text-slate-400">Buy Cost </span><b>{inr(t.cost)}</b></div>
-        <div><span className="text-slate-400">Margin </span><b className="text-violet-600">{inr(t.margin)}</b></div>
       </div>
 
       <div className="overflow-x-auto pb-6">

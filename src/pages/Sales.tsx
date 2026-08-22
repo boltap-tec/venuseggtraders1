@@ -87,7 +87,7 @@ export default function Sales() {
                 <tr>
                   <th className="th">Bill No</th><th className="th">Date</th><th className="th">Firm</th><th className="th">Type</th><th className="th">Seller</th>
                   <th className="th text-right">Trays</th><th className="th text-right">Net</th>
-                  <th className="th text-right">Margin</th><th className="th">Status</th><th className="th"></th>
+                  <th className="th">Status</th><th className="th"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -103,7 +103,6 @@ export default function Sales() {
                       <td className="td">{s.sellerName}</td>
                       <td className="td text-right tabular-nums">{trays}</td>
                       <td className="td text-right tabular-nums font-semibold">{inr(t.net)}</td>
-                      <td className="td text-right tabular-nums text-violet-600">{inr(t.margin)}</td>
                       <td className="td"><StatusBadge status={t.status} /></td>
                       <td className="td">
                         <div className="flex justify-end gap-1">
@@ -120,7 +119,6 @@ export default function Sales() {
                 <tr className="font-bold">
                   <td className="td" colSpan={6}>Total ({list.length})</td>
                   <td className="td text-right tabular-nums">{inr(totals.net)}</td>
-                  <td className="td text-right tabular-nums text-violet-600">{inr(totals.margin)}</td>
                   <td className="td" colSpan={2}></td>
                 </tr>
               </tfoot>
@@ -190,8 +188,7 @@ export function SaleEditor({ editing, setEditing, isNew, firmHasGst, firmName, e
         </div>
 
         <div className="rounded-xl border border-slate-200 p-3 dark:border-slate-700">
-          <LineItemEditor items={editing.items} onChange={(items: SaleItem[]) => setEditing({ ...editing, items })} showGst={firmHasGst && editing.gstEnabled} showCost eggsPerTray={eggsPerTray} />
-          <p className="mt-1 text-xs text-slate-400">Buy Cost/Tray is internal (for margin) and never printed on the invoice.</p>
+          <LineItemEditor items={editing.items} onChange={(items: SaleItem[]) => setEditing({ ...editing, items })} showGst={firmHasGst && editing.gstEnabled} eggsPerTray={eggsPerTray} />
         </div>
 
         {editing.billingType === 'Credit' && (
@@ -205,8 +202,6 @@ export function SaleEditor({ editing, setEditing, isNew, firmHasGst, firmName, e
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
           <div className="flex gap-5 text-sm">
             <div><span className="text-slate-400">Net </span><b className="tabular-nums">{inr(t.net)}</b></div>
-            <div><span className="text-slate-400">Cost </span><b className="tabular-nums">{inr(t.cost)}</b></div>
-            <div><span className="text-slate-400">Margin </span><b className="tabular-nums text-violet-600">{inr(t.margin)}</b></div>
           </div>
           <div className="flex gap-2">
             <button className="btn-outline" onClick={onCancel}>Cancel</button>
