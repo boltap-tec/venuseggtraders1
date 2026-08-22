@@ -39,7 +39,7 @@ export function financialYear(iso: string, fyStartMonth = 4): string {
   const m = d.getMonth() + 1
   const y = d.getFullYear()
   const startYear = m >= fyStartMonth ? y : y - 1
-  return `${startYear}-${String((startYear + 1) % 100).padStart(2, '0')}`
+  return `${startYear}-${startYear + 1}` // e.g. 2025-2026
 }
 
 const ONES = [

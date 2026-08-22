@@ -131,7 +131,7 @@ export default function Sales() {
 
       <SaleEditor
         editing={editing} setEditing={setEditing} isNew={isNew} firmHasGst={!!firm?.gstin}
-        firmName={firm?.name || ''}
+        firmName={firm?.name || ''} eggsPerTray={firm?.eggsPerTrayOverride || db.settings.eggsPerTray}
         billingTypes={db.settings.billingTypes} onSave={save} onCancel={() => setEditing(null)}
       />
 
@@ -141,9 +141,9 @@ export default function Sales() {
   )
 }
 
-export function SaleEditor({ editing, setEditing, isNew, firmHasGst, firmName, billingTypes, onSave, onCancel }: {
+export function SaleEditor({ editing, setEditing, isNew, firmHasGst, firmName, eggsPerTray, billingTypes, onSave, onCancel }: {
   editing: Sale | null; setEditing: (s: Sale | null) => void; isNew: boolean; firmHasGst: boolean
-  firmName: string; billingTypes: BillingType[]; onSave: (view?: boolean) => void; onCancel: () => void
+  firmName: string; eggsPerTray: number; billingTypes: BillingType[]; onSave: (view?: boolean) => void; onCancel: () => void
 }) {
   if (!editing) return null
   const t = saleTotals(editing)
@@ -190,7 +190,7 @@ export function SaleEditor({ editing, setEditing, isNew, firmHasGst, firmName, b
         </div>
 
         <div className="rounded-xl border border-slate-200 p-3 dark:border-slate-700">
-          <LineItemEditor items={editing.items} onChange={(items: SaleItem[]) => setEditing({ ...editing, items })} showGst={firmHasGst && editing.gstEnabled} showCost />
+          <LineItemEditor items={editing.items} onChange={(items: SaleItem[]) => setEditing({ ...editing, items })} showGst={firmHasGst && editing.gstEnabled} showCost eggsPerTray={eggsPerTray} />
           <p className="mt-1 text-xs text-slate-400">Buy Cost/Tray is internal (for margin) and never printed on the invoice.</p>
         </div>
 

@@ -83,7 +83,8 @@ export interface Purchase {
   purchaserGstin?: string
   trayQty: number
   eggsPerTray: number // snapshot of tray size at record time
-  ratePerTray?: number
+  ratePerEgg?: number // rate per single egg (primary input)
+  ratePerTray?: number // derived: ratePerEgg * eggsPerTray
   amount: number // EDITABLE total amount
   billingType: BillingType
   billMode?: BillMode // Simple / Detailed voucher
@@ -102,7 +103,8 @@ export interface SaleItem {
   id: ID
   description: string
   qtyTray: number
-  amountPerQty: number // rate per tray (selling)
+  ratePerEgg?: number // rate per single egg (primary input)
+  amountPerQty: number // rate per tray (selling) — derived: ratePerEgg * eggsPerTray
   costPerTray?: number // internal buy cost per tray for margin — never printed
   hsnSac?: string
   taxRate?: number

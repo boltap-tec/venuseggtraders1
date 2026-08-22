@@ -128,7 +128,7 @@ export default function Quotations() {
                 onText={(name) => setEditing({ ...editing, sellerName: name })} />
             </Field>
             <div className="rounded-xl border border-slate-200 p-3 dark:border-slate-700">
-              <LineItemEditor items={editing.items} onChange={(items: SaleItem[]) => setEditing({ ...editing, items })} showGst={!!firm?.gstin && editing.gstEnabled} />
+              <LineItemEditor items={editing.items} onChange={(items: SaleItem[]) => setEditing({ ...editing, items })} showGst={!!firm?.gstin && editing.gstEnabled} eggsPerTray={firm?.eggsPerTrayOverride || db.settings.eggsPerTray} />
             </div>
             <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
               <div className="text-sm"><span className="text-slate-400">Total </span><b className="tabular-nums">{inr(saleTotals(editing).net)}</b></div>

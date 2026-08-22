@@ -156,21 +156,23 @@ export default function Purchases() {
                 onText={(name) => setEditing({ ...editing, purchaserName: name, purchaserId: undefined })}
               />
             </Field>
-            <Field label="Tray Qty">
+            <Field label="No. of Trays">
               <input className="input" type="number" min={0} value={editing.trayQty || ''}
                 onChange={(e) => {
                   const trayQty = parseFloat(e.target.value) || 0
-                  const amount = editing.ratePerTray ? trayQty * editing.ratePerTray : editing.amount
+                  const amount = editing.ratePerEgg ? trayQty * editing.eggsPerTray * editing.ratePerEgg : editing.amount
                   setEditing({ ...editing, trayQty, amount })
                 }} />
               <p className="mt-1 text-xs text-slate-400">{traysToEggs(editing.trayQty, editing.eggsPerTray)} @ {editing.eggsPerTray}/tray</p>
             </Field>
-            <Field label="Rate / Tray (optional)">
-              <input className="input" type="number" min={0} value={editing.ratePerTray || ''}
+            <Field label="Rate / Egg">
+              <input className="input" type="number" min={0} step="0.01" value={editing.ratePerEgg || ''}
                 onChange={(e) => {
-                  const ratePerTray = parseFloat(e.target.value) || 0
-                  setEditing({ ...editing, ratePerTray, amount: ratePerTray ? editing.trayQty * ratePerTray : editing.amount })
+                  const ratePerEgg = parseFloat(e.target.value) || 0
+                  const ratePerTray = ratePerEgg * editing.eggsPerTray
+                  setEditing({ ...editing, ratePerEgg, ratePerTray, amount: ratePerEgg ? editing.trayQty * editing.eggsPerTray * ratePerEgg : editing.amount })
                 }} />
+              <p className="mt-1 text-xs text-slate-400">= {editing.ratePerEgg ? inr(editing.ratePerEgg * editing.eggsPerTray) : '—'} / tray</p>
             </Field>
             <Field label="Amount (editable)" className="col-span-2">
               <input className="input text-lg font-bold" type="number" min={0} value={editing.amount || ''}

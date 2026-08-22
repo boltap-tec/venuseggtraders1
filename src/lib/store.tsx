@@ -219,11 +219,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           next.purchases = [rec, ...db.purchases]
         } else {
           const n = nextVoucher(db, firm, p.date)
-          next.counters = {
-            ...db.counters,
-            voucherNo: n.global,
-            firmVoucherSeq: { ...db.counters.firmVoucherSeq, [n.key]: n.seq },
-          }
+          next.counters = { ...db.counters, voucherNo: n.global }
           rec = { ...p, voucherNo: n.global, firmVoucherNo: n.firmVoucherNo }
           next.purchases = [rec, ...db.purchases]
         }
@@ -271,11 +267,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           next.sales = [rec, ...db.sales]
         } else {
           const n = nextBill(db, firm, s.date)
-          next.counters = {
-            ...db.counters,
-            billNo: n.global,
-            firmBillSeq: { ...db.counters.firmBillSeq, [n.key]: n.seq },
-          }
+          next.counters = { ...db.counters, billNo: n.global }
           rec = { ...s, billNo: n.global, firmBillNo: n.firmBillNo }
           next.sales = [rec, ...db.sales]
         }
@@ -322,11 +314,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           next.quotations = [rec, ...db.quotations]
         } else {
           const n = nextQuote(db, firm, q.date)
-          next.counters = {
-            ...db.counters,
-            quoteNo: n.global,
-            firmQuoteSeq: { ...db.counters.firmQuoteSeq, [n.key]: n.seq },
-          }
+          next.counters = { ...db.counters, quoteNo: n.global }
           rec = { ...q, quoteNo: n.global, firmQuoteNo: n.firmQuoteNo }
           next.quotations = [rec, ...db.quotations]
         }
@@ -380,7 +368,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
     commit({
       ...db,
-      counters: { ...db.counters, billNo: n.global, firmBillSeq: { ...db.counters.firmBillSeq, [n.key]: n.seq } },
+      counters: { ...db.counters, billNo: n.global },
       sales: [sale, ...db.sales],
       quotations: db.quotations.map((x) => (x.id === id ? { ...x, status: 'Converted', convertedSaleId: sale.id } : x)),
     })

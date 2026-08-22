@@ -131,7 +131,7 @@ function seedPurchase(
   db.purchases.push({
     id: uid(),
     voucherNo: db.counters.voucherNo,
-    firmVoucherNo: `${firm.purchasePrefix}${fy}/${String(seq).padStart(3, '0')}`,
+    firmVoucherNo: `Voucher/${fy}/${String(seq).padStart(3, '0')}`,
     date,
     firmId,
     purchaserName,
@@ -172,7 +172,7 @@ function seedSale(
   db.sales.push({
     id: uid(),
     billNo: db.counters.billNo,
-    firmBillNo: `${firm.invoicePrefix}${fy}/${String(seq).padStart(3, '0')}`,
+    firmBillNo: `Bill/${fy}/${String(seq).padStart(3, '0')}`,
     date,
     firmId,
     sellerType,
@@ -198,7 +198,7 @@ function fyOf(iso: string, fyStartMonth: number): string {
   const m = dt.getMonth() + 1
   const y = dt.getFullYear()
   const startYear = m >= fyStartMonth ? y : y - 1
-  return `${startYear}-${String((startYear + 1) % 100).padStart(2, '0')}`
+  return `${startYear}-${startYear + 1}`
 }
 
 export function loadDB(): Database {
