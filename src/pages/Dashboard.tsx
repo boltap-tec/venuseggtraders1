@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar,
 } from 'recharts'
-import { TrendingUp, ShoppingCart, Receipt, Boxes, AlertTriangle, Wallet, HandCoins } from 'lucide-react'
+import { TrendingUp, ShoppingCart, Receipt, Boxes, AlertTriangle, Wallet, HandCoins, ExternalLink, Truck } from 'lucide-react'
 import { useStore } from '../lib/store'
 import { PageHeader, StatCard, StatusBadge } from '../components/ui'
 import { saleTotals, purchaseStatus, traysToEggs } from '../lib/calc'
@@ -56,7 +56,21 @@ export default function Dashboard() {
 
   return (
     <div>
-      <PageHeader title="Dashboard" subtitle={firm ? `${firm.name} — this month` : 'Select a firm'} />
+      <PageHeader
+        title="Dashboard"
+        subtitle={firm ? `${firm.name} — this month` : 'Select a firm'}
+        actions={
+          <a
+            className="btn-primary"
+            href="https://ewaybillgst.gov.in/login.aspx"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open the Government E-Way Bill portal in a new tab"
+          >
+            <Truck size={16} /> E-Way Bill <ExternalLink size={14} />
+          </a>
+        }
+      />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         <StatCard label="Sales (mo)" value={inr(kpi.salesVal)} tone="emerald" icon={<Receipt />} />
