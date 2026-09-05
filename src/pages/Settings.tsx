@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Save, Database, RotateCcw, Egg, Palette, Lock, Cloud, CloudOff, RefreshCw, DownloadCloud } from 'lucide-react'
+import { Save, Database, RotateCcw, Egg, Palette, Lock, Cloud, CloudOff, RefreshCw, DownloadCloud, KeyRound } from 'lucide-react'
 import { useStore } from '../lib/store'
 import type { BillingType, DocTemplate, BillMode } from '../lib/types'
 import { PageHeader, Field, Confirm } from '../components/ui'
@@ -12,10 +12,27 @@ const TEMPLATES: { id: DocTemplate; label: string; hint: string }[] = [
 ]
 
 export default function Settings() {
-  const { db, saveSettings, resetDemo, cloud, syncState, syncNow, restoreFromCloud } = useStore()
+  const { db, saveSettings, resetDemo, cloud, syncState, syncNow, restoreFromCloud, changePassword } = useStore()
   const [s, setS] = useState({ ...db.settings })
   const [saved, setSaved] = useState(false)
   const [reset, setReset] = useState(false)
+
+  // Change login password (cloud mode)
+  const [pw1, setPw1] = useState('')
+  const [pw2, setPw2] = useState('')
+  const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [pwBusy, setPwBusy] = useState(false)
+
+  async function doChangePassword() {
+    setPwMsg(null)
+    if (pw1.length < 6) { setPwMsg({ ok: false, text: 'Password must be at least 6 characters.' }); return }
+    if (pw1 !== pw2) { setPwMsg({ ok: false, text: 'The two passwords do not match.' }); return }
+    setPwBusy(true)
+    const err = await changePassword(pw1)
+    setPwBusy(false)
+    if (err) setPwMsg({ ok: false, text: err })
+    else { setPwMsg({ ok: true, text: 'Password changed successfully.' }); setPw1(''); setPw2('') }
+  }
 
   function save() {
     saveSettings(s)
@@ -136,6 +153,22 @@ export default function Settings() {
             </>
           )}
         </div>
+
+        {/* ---- Change login password (cloud) ---- */}
+        {cloud && (
+          <div className="card p-5">
+            <h3 className="mb-1 flex items-center gap-2 font-semibold"><KeyRound size={18} /> Change Login Password</h3>
+            <p className="mb-3 text-xs text-slate-400">Updates your Supabase login password (stored securely/encrypted). You can change it anytime.</p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="New password"><input className="input" type="password" value={pw1} onChange={(e) => setPw1(e.target.value)} placeholder="At least 6 characters" /></Field>
+              <Field label="Confirm new password"><input className="input" type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} /></Field>
+            </div>
+            {pwMsg && <p className={`mt-2 text-sm ${pwMsg.ok ? 'text-emerald-600' : 'text-rose-600'}`}>{pwMsg.text}</p>}
+            <button className="btn-primary mt-3" onClick={doChangePassword} disabled={pwBusy || !pw1 || !pw2}>
+              <KeyRound size={16} /> {pwBusy ? 'Updating…' : 'Update Password'}
+            </button>
+          </div>
+        )}
 
         <div className="card p-5">
           <h3 className="mb-4 flex items-center gap-2 font-semibold"><Database size={18} /> Data</h3>

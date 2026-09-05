@@ -23,6 +23,8 @@ interface StoreValue {
   booting: boolean
   syncNow: () => Promise<void>
   restoreFromCloud: () => Promise<void>
+  changePassword: (newPassword: string) => Promise<string | null>
+  sendPasswordReset: (email: string) => Promise<string | null>
 
   // firms
   saveFirm: (f: Firm) => void
@@ -183,6 +185,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const cloud = await pullState(cloudUserId.current)
     if (cloud) { const m = migrate(cloud); saveDB(m); setDb({ ...m }); setSyncState('saved') }
     else setSyncState('error')
+  }
+
+  // Change the signed-in user's password (Supabase Auth — stored hashed, not plain).
+  async function changePassword(newPassword: string): Promise<string | null> {
+    if (!isCloud || !supabase) return 'Password change needs cloud mode (Supabase).'
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    return error ? error.message : null
+  }
+  // Send a password-reset email (for the login screen "Forgot password?").
+  async function sendPasswordReset(email: string): Promise<string | null> {
+    if (!isCloud || !supabase) return 'Password reset needs cloud mode (Supabase).'
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: window.location.origin })
+    return error ? error.message : null
   }
 
   // ---------- firms ----------
@@ -408,7 +423,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<StoreValue>(
     () => ({
       db, user, currentFirmId, setCurrentFirmId, login, logout,
-      cloud: isCloud, syncState, booting, syncNow, restoreFromCloud,
+      cloud: isCloud, syncState, booting, syncNow, restoreFromCloud, changePassword, sendPasswordReset,
       saveFirm, deleteFirm, saveParty, deleteParty,
       savePurchase, deletePurchase, addPurchasePayment,
       saveSale, deleteSale, addSalePayment,

@@ -4,21 +4,31 @@ import { Egg, LogIn } from 'lucide-react'
 import { useStore } from '../lib/store'
 
 export default function Login() {
-  const { login, cloud } = useStore()
+  const { login, cloud, sendPasswordReset } = useStore()
   const nav = useNavigate()
   const [email, setEmail] = useState(cloud ? '' : 'admin@venus.app')
   const [password, setPassword] = useState(cloud ? '' : 'admin123')
   const [err, setErr] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setBusy(true)
     setErr(null)
+    setInfo(null)
     const error = await login(email, password)
     setBusy(false)
     if (error) setErr(error)
     else nav('/')
+  }
+
+  async function forgot() {
+    setErr(null); setInfo(null)
+    if (!email.trim()) { setErr('Enter your email above first, then click "Forgot password?".'); return }
+    const error = await sendPasswordReset(email)
+    if (error) setErr(error)
+    else setInfo('Password-reset email sent. Open the link in it, then set a new password in Settings → Change Login Password.')
   }
 
   return (
@@ -60,7 +70,13 @@ export default function Login() {
               <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             {err && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600 dark:bg-rose-900/30">{err}</p>}
+            {info && <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-900/30">{info}</p>}
             <button className="btn-primary w-full" type="submit" disabled={busy}><LogIn size={18} /> {busy ? 'Signing in…' : 'Sign in'}</button>
+            {cloud && (
+              <button type="button" onClick={forgot} className="w-full text-center text-sm font-semibold text-brand-600 hover:underline">
+                Forgot password?
+              </button>
+            )}
           </div>
 
           {cloud ? (
