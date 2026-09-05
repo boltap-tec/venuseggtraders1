@@ -91,6 +91,10 @@ export default function Login() {
               <p>Operator — operator@venus.app / operator123</p>
             </div>
           )}
+
+          <p className="mt-6 text-center text-[11px] leading-snug text-slate-400">
+            Designed by <span className="font-semibold text-slate-500 dark:text-slate-300">Arul.M</span>, Vangapalayam, Karur
+          </p>
         </form>
       </div>
     </div>

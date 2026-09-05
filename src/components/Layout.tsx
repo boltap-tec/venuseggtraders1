@@ -58,7 +58,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen">
       {/* Sidebar */}
       <aside
-        className={`no-print fixed inset-y-0 left-0 z-40 w-64 transform border-r border-slate-200 bg-white transition-transform dark:border-slate-800 dark:bg-slate-900 lg:static lg:translate-x-0 ${
+        className={`no-print fixed inset-y-0 left-0 z-40 flex w-64 transform flex-col border-r border-slate-200 bg-white transition-transform dark:border-slate-800 dark:bg-slate-900 lg:static lg:translate-x-0 ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -92,6 +92,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </NavLink>
           ))}
         </nav>
+
+        <div className="mt-auto border-t border-slate-200 px-4 py-3 text-[11px] leading-snug text-slate-400 dark:border-slate-800">
+          Designed by <span className="font-semibold text-slate-500 dark:text-slate-300">Arul.M</span>
+          <br />Vangapalayam, Karur
+        </div>
       </aside>
 
       {open && <div className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={() => setOpen(false)} />}
