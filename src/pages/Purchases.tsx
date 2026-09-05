@@ -9,6 +9,7 @@ import { AutoParty } from '../components/AutoParty'
 import { purchaseStatus, traysToEggs } from '../lib/calc'
 import { inr, fmtDate, todayISO } from '../lib/format'
 import { exportPurchaseRegister } from '../lib/excel'
+import { nextVoucher } from '../lib/numbering'
 
 const blank = (firmId: string, eggsPerTray: number): Purchase => ({
   id: uid(), voucherNo: 0, firmVoucherNo: '', date: todayISO(), firmId,
@@ -38,7 +39,9 @@ export default function Purchases() {
 
   function openNew() {
     if (!currentFirmId) { alert('Please select a firm first.'); return }
-    setEditing(blank(currentFirmId, eggsPerTray))
+    const b = blank(currentFirmId, eggsPerTray)
+    if (firm) b.firmVoucherNo = nextVoucher(db, firm, b.date).firmVoucherNo // pre-fill "last + 1" (editable)
+    setEditing(b)
     setIsNew(true)
   }
   function openEdit(p: Purchase) {
@@ -142,6 +145,7 @@ export default function Purchases() {
                 <span className="font-semibold text-teal-700 dark:text-teal-300">{firm.name}</span>
               </div>
             )}
+            <Field label="Voucher No (editable)"><input className="input font-semibold" value={editing.firmVoucherNo} onChange={(e) => setEditing({ ...editing, firmVoucherNo: e.target.value })} placeholder="Voucher/2025-2026/001" /></Field>
             <Field label="Date"><input className="input" type="date" value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })} /></Field>
             <Field label="Billing Type">
               <select className="input" value={editing.billingType} onChange={(e) => setEditing({ ...editing, billingType: e.target.value as BillingType })}>

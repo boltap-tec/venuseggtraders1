@@ -236,8 +236,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           next.purchases = [rec, ...db.purchases]
         } else {
           const n = nextVoucher(db, firm, p.date)
+          // Respect a user-entered Voucher No; otherwise use the auto "last + 1".
+          const firmVoucherNo = p.firmVoucherNo && p.firmVoucherNo.trim() ? p.firmVoucherNo.trim() : n.firmVoucherNo
           next.counters = { ...db.counters, voucherNo: n.global }
-          rec = { ...p, voucherNo: n.global, firmVoucherNo: n.firmVoucherNo }
+          rec = { ...p, voucherNo: n.global, firmVoucherNo }
           next.purchases = [rec, ...db.purchases]
         }
       } else {
@@ -284,8 +286,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           next.sales = [rec, ...db.sales]
         } else {
           const n = nextBill(db, firm, s.date)
+          // Respect a user-entered Bill No; otherwise use the auto "last + 1".
+          const firmBillNo = s.firmBillNo && s.firmBillNo.trim() ? s.firmBillNo.trim() : n.firmBillNo
           next.counters = { ...db.counters, billNo: n.global }
-          rec = { ...s, billNo: n.global, firmBillNo: n.firmBillNo }
+          rec = { ...s, billNo: n.global, firmBillNo }
           next.sales = [rec, ...db.sales]
         }
       } else {

@@ -10,6 +10,7 @@ import LineItemEditor from '../components/LineItemEditor'
 import { saleTotals } from '../lib/calc'
 import { inr, fmtDate, todayISO } from '../lib/format'
 import { exportSalesRegister } from '../lib/excel'
+import { nextBill } from '../lib/numbering'
 
 const blank = (firmId: string): Sale => ({
   id: uid(), billNo: 0, firmBillNo: '', date: todayISO(), firmId,
@@ -37,7 +38,9 @@ export default function Sales() {
 
   function openNew() {
     if (!currentFirmId) { alert('Please select a firm first.'); return }
-    setEditing(blank(currentFirmId)); setIsNew(true)
+    const b = blank(currentFirmId)
+    if (firm) b.firmBillNo = nextBill(db, firm, b.date).firmBillNo // pre-fill "last + 1" (editable)
+    setEditing(b); setIsNew(true)
   }
   function openEdit(s: Sale) { setEditing({ ...s, items: s.items.map((i) => ({ ...i })) }); setIsNew(false) }
   function save(view?: boolean) {
@@ -155,6 +158,7 @@ export function SaleEditor({ editing, setEditing, isNew, firmHasGst, firmName, e
           </div>
         )}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Field label="Bill No (editable)"><input className="input font-semibold" value={editing.firmBillNo} onChange={(e) => setEditing({ ...editing, firmBillNo: e.target.value })} placeholder="Bill/2025-2026/001" /></Field>
           <Field label="Date"><input className="input" type="date" value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })} /></Field>
           <Field label="Name (Type)">
             <select className="input" value={editing.sellerType} onChange={(e) => setEditing({ ...editing, sellerType: e.target.value as SellerType })}>
