@@ -14,7 +14,7 @@ import { nextBill } from '../lib/numbering'
 
 const blank = (firmId: string): Sale => ({
   id: uid(), billNo: 0, firmBillNo: '', date: todayISO(), firmId,
-  sellerType: 'B2B', sellerName: '',
+  sellerType: 'B2C', sellerName: '',
   items: [{ id: uid(), description: 'Farm Eggs (Tray)', qtyTray: 0, amountPerQty: 0, costPerTray: 0 }],
   discountAmount: 0, billingType: 'Cash', payments: [], receivedAmount: 0, docStatus: 'Finalized',
   createdBy: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),

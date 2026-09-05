@@ -14,7 +14,7 @@ import { exportQuoteExcel } from '../lib/excel'
 
 const blank = (firmId: string): Quotation => ({
   id: uid(), quoteNo: 0, firmQuoteNo: '', date: todayISO(), firmId,
-  sellerType: 'B2B', sellerName: '',
+  sellerType: 'B2C', sellerName: '',
   items: [{ id: uid(), description: 'Farm Eggs (Tray)', qtyTray: 0, amountPerQty: 0 }],
   discountAmount: 0, status: 'Draft', validUntil: '',
   createdBy: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
