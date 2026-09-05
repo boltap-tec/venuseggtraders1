@@ -164,7 +164,7 @@ export default function Purchases() {
               <input className="input" type="number" min={0} value={editing.trayQty || ''}
                 onChange={(e) => {
                   const trayQty = parseFloat(e.target.value) || 0
-                  const amount = editing.ratePerEgg ? trayQty * editing.eggsPerTray * editing.ratePerEgg : editing.amount
+                  const amount = editing.ratePerEgg ? Math.round(trayQty * editing.eggsPerTray * editing.ratePerEgg) : editing.amount
                   setEditing({ ...editing, trayQty, amount })
                 }} />
               <p className="mt-1 text-xs text-slate-400">{traysToEggs(editing.trayQty, editing.eggsPerTray)} @ {editing.eggsPerTray}/tray</p>
@@ -174,7 +174,7 @@ export default function Purchases() {
                 onChange={(e) => {
                   const ratePerEgg = parseFloat(e.target.value) || 0
                   const ratePerTray = ratePerEgg * editing.eggsPerTray
-                  setEditing({ ...editing, ratePerEgg, ratePerTray, amount: ratePerEgg ? editing.trayQty * editing.eggsPerTray * ratePerEgg : editing.amount })
+                  setEditing({ ...editing, ratePerEgg, ratePerTray, amount: ratePerEgg ? Math.round(editing.trayQty * editing.eggsPerTray * ratePerEgg) : editing.amount })
                 }} />
               <p className="mt-1 text-xs text-slate-400">= {editing.ratePerEgg ? inr(editing.ratePerEgg * editing.eggsPerTray) : '—'} / tray</p>
             </Field>

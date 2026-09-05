@@ -55,22 +55,23 @@ export function saleTotals(doc: Sale | Quotation): SaleTotals {
     }
   }
 
-  const net = Math.round((taxable + tax) * 100) / 100
+  // Amounts are rounded to the nearest whole rupee (per request).
+  const net = Math.round(taxable + tax)
   const received = 'receivedAmount' in doc ? (doc as Sale).receivedAmount || 0 : 0
-  const balance = Math.round((net - received) * 100) / 100
+  const balance = Math.round(net - received)
   const status: PaymentStatus = received <= 0 ? 'Pending' : balance <= 0.001 ? 'Paid' : 'Partial'
-  const margin = Math.round((taxable - cost) * 100) / 100
+  const margin = Math.round(taxable - cost)
 
   return {
-    gross: round2(gross),
+    gross: Math.round(gross),
     discount: round2(discount),
-    taxable: round2(taxable),
-    tax: round2(tax),
+    taxable: Math.round(taxable),
+    tax: Math.round(tax),
     net,
     received: round2(received),
     balance,
     status,
-    cost: round2(cost),
+    cost: Math.round(cost),
     margin,
   }
 }
